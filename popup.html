@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <title>Domain and Protocol Switcher</title>
+        <link rel="stylesheet" href="style/style.css" />
+    </head>
+    <body>
+        <h1>Domain and Protocol Switcher</h1>
+        <div id="domainList"></div>
+        <button id="addDomainButton">+ Add New Domain</button>
+        <form id="domainForm" style="display: none">
+            <input
+                type="text"
+                id="nameInput"
+                name="name"
+                placeholder="Domain Name (e.g., My Site)"
+                required
+                maxlength="30"
+            />
+            <input
+                type="text"
+                id="protocolInput"
+                name="protocol"
+                placeholder="Protocol (http or https)"
+                required
+            />
+            <input
+                type="text"
+                id="domainInput"
+                name="domain"
+                placeholder="Domain (example.com)"
+                required
+            />
+            <div id="form-button-container">
+                <button type="button" id="cancelButton">Cancel</button>
+                <button type="button" id="saveDomainButton">Save</button>
+            </div>
+        </form>
+        <script src="script/index.js"></script>
+    </body>
+</html>
