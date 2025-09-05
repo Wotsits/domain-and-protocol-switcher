@@ -1,136 +1,146 @@
-/* Common Styles  */
+/* Reset some basics */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
+/* Body Wrapper */
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    width: 400px;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+/* Title */
+h1 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+/* Domain List */
+#domainList {
+    margin-bottom: 20px;
+}
+
+/* Common Buttons */
 button {
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    padding: 10px 14px;
+    padding: 10px 16px;
     font-size: 14px;
-    transition: background-color 0.2s, transform 0.1s;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 button:active {
     transform: scale(0.97);
 }
 
+/* Button Variants */
+.btn--positive {
+    background-color: #4caf50;
+    color: white;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.btn--positive:hover {
+    background-color: #43a047;
+    box-shadow: 0 3px 6px rgba(67, 160, 71, 0.3);
+}
+
+.btn--neutral {
+    background-color: #008cba;
+    color: white;
+    flex: 1;
+}
+
+.btn--neutral:hover {
+    background-color: #007bb5;
+    box-shadow: 0 3px 6px rgba(0, 124, 181, 0.3);
+}
+
+.btn--negative {
+    background-color: #f44336;
+    color: white;
+    flex: 1;
+}
+
+.btn--negative:hover {
+    background-color: #d32f2f;
+    box-shadow: 0 3px 6px rgba(211, 47, 47, 0.3);
+}
+
+/* Inputs */
 input {
-    margin-bottom: 12px;
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 14px;
-    box-sizing: border-box;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input:focus {
     border-color: #4caf50;
     outline: none;
-    box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
 }
 
+/* Divider */
+hr {
+    border: none;
+    height: 1px;
+    background: #ddd;
+    margin: 25px 0;
+}
+
+/* Domain Items */
+.domain-variant-btn {
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+/* Form */
+#domainForm {
+    border: 1px solid #ddd;
+    padding: 18px;
+    border-radius: 10px;
+    margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.variant-group {
+    margin-bottom: 16px;
+}
+
+#nameInput {
+    margin-bottom: 14px;
+}
+
+#protocolInput {
+    width: 100px;
+}
+
+.variant-url-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Button Container */
 #form-button-container {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-}
-
-/* Popup Wrapper */
-
-body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    padding: 20px;
-    width: 320px;
-    background-color: #f4f6f8;
-    color: #333;
-}
-
-/* Title and Domain List */
-
-h1 {
-    font-size: 20px;
-    margin-bottom: 15px;
-    text-align: center;
-    color: #222;
-}
-
-#domainList {
-    margin-bottom: 20px;
-}
-
-.domain-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    background-color: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.domain-item span {
-    font-size: 14px;
-    font-weight: 500;
-    color: #444;
-}
-
-.domain-item svg {
-    height: 18px;
-    width: 18px;
-    fill: #e63946;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.domain-item svg:hover {
-    transform: scale(1.2);
-}
-
-/* Add Domain Button */
-
-#addDomainButton {
-    width: 100%;
-    background-color: #4caf50;
-    color: white;
-    font-weight: 600;
-    margin-bottom: 15px;
-}
-
-#addDomainButton:hover {
-    background-color: #43a047;
-}
-
-/* Form Styles */
-
-#domainForm {
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
-    background-color: #fff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-}
-
-#saveDomainButton {
-    background-color: #008cba;
-    color: white;
-    font-weight: 600;
-    flex: 1;
-}
-
-#saveDomainButton:hover {
-    background-color: #007bb5;
-}
-
-#cancelButton {
-    background-color: #f44336;
-    color: white;
-    font-weight: 600;
-    flex: 1;
-}
-
-#cancelButton:hover {
-    background-color: #d32f2f;
+    gap: 12px;
+    margin-top: 15px;
 }

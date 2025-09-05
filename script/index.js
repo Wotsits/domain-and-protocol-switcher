@@ -33,6 +33,7 @@ function switchDomain(newProtocol, newDomain) {
         url.hostname = newDomain;
         chrome.tabs.update(tab.id, { url: url.toString() });
     });
+    loadDomains({ newProtocol, newDomain });
 }
 
 /*
@@ -46,38 +47,74 @@ function switchDomain(newProtocol, newDomain) {
  * Notes: Validates input before adding
  * Bugs: None
  */
-function addNewDomain() {
-    // store the new domain in chrome storage
-    var newName = document.getElementById("nameInput").value;
-    var newDomain = document.getElementById("domainInput").value;
-    var newProtocol = document.getElementById("protocolInput").value;
-    // test the protocol and domain are valid
-    if (newProtocol !== "http" && newProtocol !== "https") {
-        alert("Please enter a valid protocol (http or https)");
-        return;
-    }
-    if (!newDomain) {
-        alert("Please enter a valid domain");
-        return;
-    }
-    if (newDomain.includes("://")) {
-        alert("Please enter a valid domain without protocol");
-        return;
-    }
-    if (newDomain.includes("/")) {
-        alert("Please enter a valid domain without path");
-        return;
-    }
+function addNewDomainVariantGroup() {
+    const variantGroups = document.querySelectorAll(".variant-group");
+    variantGroups.forEach((group, index) => {
+        const nameInput = group.querySelector("#nameInput").value.trim();
+        const protocolInput = group
+            .querySelector("#protocolInput")
+            .value.trim();
+        const domainInput = group.querySelector("#domainInput").value.trim();
+        // test the protocol and domain are valid
+        if (protocolInput !== "http" && protocolInput !== "https") {
+            alert(
+                `Please enter a valid protocol (http or https) in variant ${
+                    index + 1
+                }`
+            );
+            return;
+        }
+        if (!domainInput) {
+            alert(`Please enter a valid domain in variant ${index + 1}`);
+            return;
+        }
+        if (domainInput.includes("://")) {
+            alert(
+                `Please enter a valid domain without protocol in variant ${
+                    index + 1
+                }`
+            );
+            return;
+        }
+        if (domainInput.includes("/")) {
+            alert(
+                `Please enter a valid domain without path in variant ${
+                    index + 1
+                }. If you have included a trailing slash, please remove it.`
+            );
+            return;
+        }
+        if (!nameInput) {
+            alert(
+                `Please enter a valid name for the domain in variant ${
+                    index + 1
+                }`
+            );
+            return;
+        }
+    });
+
+    // now that everything is validated, build the object to be put in storage.
+    const thisVariantSet = Array.from(variantGroups).map((group) => {
+        return {
+            name: group.querySelector("#nameInput").value.trim(),
+            protocol: group.querySelector("#protocolInput").value.trim(),
+            domain: group.querySelector("#domainInput").value.trim(),
+        };
+    });
 
     chrome.storage.sync.get({ domains: [] }, function (data) {
         // add the new domain to the list
-        var domains = data.domains;
-        domains.push({
-            name: newName,
-            protocol: newProtocol,
-            domain: newDomain,
-        });
-        chrome.storage.sync.set({ domains: domains }, function () {
+        var domainsCpy = [...data.domains];
+        // if domainsCpy is null or undefined, initialize it as an empty array
+        if (!domainsCpy) {
+            domainsCpy = [];
+        }
+        // add the new variant set as a new entry in the domains array
+        domainsCpy.push(thisVariantSet);
+        // save the updated domains array back to storage
+        chrome.storage.sync.set({ domains: domainsCpy }, function () {
+            // reload the domain list in the UI
             loadDomains();
             // clear the input fields
             document.getElementById("nameInput").value = "";
@@ -91,7 +128,7 @@ function addNewDomain() {
 
 /*
  * Function to load and display saved domains from Chrome storage
- * Parameters: None
+ * Parameters: currentDomainOveride (optional) - an object with newProtocol and newDomain to override the current tab's domain
  * Returns: None
  * Side Effects: Updates UI
  * Requires: chrome.storage API
@@ -100,41 +137,92 @@ function addNewDomain() {
  * Notes: None
  * Bugs: None
  */
-function loadDomains() {
+function loadDomains(currentDomainOveride) {
+    // clear the current list
+    var domainList = document.getElementById("domainList");
+    domainList.innerHTML = "";
+
     chrome.storage.sync.get({ domains: [] }, function (data) {
-        // get the domains and display them
+        // get the domains from storage
         var domains = data.domains;
-        var domainList = document.getElementById("domainList");
-        domainList.innerHTML = "";
-        domains.forEach(function (item, index) {
-            var li = document.createElement("li");
-            li.className = "domain-item";
-            var button = document.createElement("button");
-            button.textContent = item.name;
-            // set up click event to switch domain
-            button.addEventListener("click", function () {
-                switchDomain(item.protocol, item.domain);
-            });
-            // add delete button
-            var deleteButton = document.createElement("button");
-            deleteButton.innerHTML =
-                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z"/></svg>';
-            deleteButton.style.marginLeft = "10px";
-            // set up click event to delete domain
-            deleteButton.addEventListener("click", function () {
-                domains.splice(index, 1);
-                chrome.storage.sync.set({ domains: domains }, function () {
-                    loadDomains();
-                });
-            });
-            li.appendChild(button);
-            li.appendChild(deleteButton);
-            domainList.appendChild(li);
-        });
+
         if (domains.length === 0) {
             domainList.innerHTML =
                 "<li>No domains added. Please add a domain.</li>";
+            return;
         }
+
+        // get the current active tab's domain and protocol
+        chrome.tabs.query(
+            { active: true, currentWindow: true },
+            function (tabs) {
+                var tab = tabs[0];
+                var url = new URL(tab.url);
+                var currentProtocol = url.protocol.replace(":", "");
+                var currentDomain = url.hostname;
+
+                if (currentDomainOveride) {
+                    currentProtocol = currentDomainOveride.newProtocol;
+                    currentDomain = currentDomainOveride.newDomain;
+                }
+
+                // get the domain set that contains the current domain
+                var currentDomainSet = domains.find((set) =>
+                    set.some((item) => {
+                        return (
+                            item.protocol === currentProtocol &&
+                            item.domain === currentDomain
+                        );
+                    })
+                );
+
+                // display the domain set that contains the current domain only.
+                if (!currentDomainSet) {
+                    domainList.innerHTML =
+                        "<li>No domains added. Please add a domain.</li>";
+                    // show the add domain button
+                    document.getElementById("addDomainButton").style.display =
+                        "block";
+                    return;
+                }
+
+                // if there is a domain set, remove the add domain button
+                document.getElementById("addDomainButton").style.display =
+                    "none";
+
+                // create list items for each domain in the current domain set
+                currentDomainSet.forEach(function (item, index) {
+                    // add the item if it is not the current domain
+                    if (item.domain !== currentDomain) {
+                        var button = document.createElement("button");
+                        button.className = "domain-variant-btn btn--neutral";
+                        button.textContent = `Switch to ${item.name}`;
+                        // set up click event to switch domain
+                        button.addEventListener("click", function () {
+                            switchDomain(item.protocol, item.domain);
+                        });
+                        domainList.appendChild(button);
+                    }
+                });
+
+                // create a delete and edit button for the domain set
+                const buttonGroup = document.createElement("div");
+                buttonGroup.className = "variant-control-button-group";
+                domainList.appendChild(buttonGroup);
+                // create delete button
+                var deleteButton = document.createElement("button");
+                deleteButton.classList.add("btn--negative");
+                deleteButton.textContent = "Delete All Domain Variants";
+                deleteButton.addEventListener("click", function () {
+                    // remove the current domain set from domains
+                    domains = domains.filter((set) => set !== currentDomainSet);
+                    chrome.storage.sync.set({ domains: domains }, function () {
+                        loadDomains();
+                    });
+                });
+                buttonGroup.appendChild(deleteButton);
+            }
+        );
     });
 }
 
@@ -151,6 +239,10 @@ function loadDomains() {
  */
 function cancelAddDomain() {
     // hide form and reset input fields
+    const variantGroups = document.getElementsByClassName("variant-group");
+    while (variantGroups.length > 1) {
+        variantGroups[variantGroups.length - 1].remove();
+    }
     document.getElementById("domainForm").style.display = "none";
     document.getElementById("domainInput").value = "";
     document.getElementById("protocolInput").value = "https";
@@ -170,6 +262,71 @@ function cancelAddDomain() {
 function showAddDomainForm() {
     // show the form
     document.getElementById("domainForm").style.display = "block";
+    // pre-fill the first variant group with the current tab's domain and protocol
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var tab = tabs[0];
+        var url = new URL(tab.url);
+        document.getElementById("protocolInput").value = url.protocol.replace(
+            ":",
+            ""
+        );
+        document.getElementById("domainInput").value = url.hostname;
+        document.getElementById("nameInput").value = "";
+    });
+}
+
+/*
+ * Function to add a new variant input group to the add domain form
+ * Parameters: None
+ * Returns: None
+ * Side Effects: Updates UI
+ * Requires: None
+ * Modifies: UI
+ * Example: addVariant()
+ * Notes: None
+ * Bugs: None
+ */
+function addVariant() {
+    const variantGroupContainer = document.getElementById(
+        "variant-group-container"
+    );
+    const variantGroup = document.createElement("div");
+    variantGroup.className = "variant-group";
+    variantGroup.innerHTML = `
+        <hr/>
+        <input
+            type="text"
+            id="nameInput"
+            name="name"
+            placeholder="Domain Name (e.g., My Site)"
+            required
+            maxlength="30"
+        />
+        <div class="variant-url-group">
+            <input
+                type="text"
+                id="protocolInput"
+                name="protocol"
+                placeholder="http or https"
+                required
+            />
+            <span>://</span>
+            <input
+                type="text"
+                id="domainInput"
+                name="domain"
+                placeholder="domain (e.g. www.example.com)"
+                required
+            />
+        </div>
+    `;
+    variantGroupContainer.appendChild(variantGroup);
+}
+
+async function resetAllData() {
+    await chrome.storage.sync.set({ domains: [] }, function () {
+        console.log("All domain data has been reset.");
+    });
 }
 
 // Event listeners
@@ -182,8 +339,17 @@ document.addEventListener("DOMContentLoaded", function () {
         .addEventListener("click", showAddDomainForm);
     document
         .getElementById("saveDomainButton")
-        .addEventListener("click", addNewDomain);
+        .addEventListener("click", addNewDomainVariantGroup);
     document
         .getElementById("cancelButton")
         .addEventListener("click", cancelAddDomain);
+    document
+        .getElementById("addVariantButton")
+        .addEventListener("click", addVariant);
+    document
+        .getElementById("resetDataButton")
+        .addEventListener("click", function () {
+            resetAllData();
+            loadDomains();
+        });
 });

@@ -6,35 +6,60 @@
     <body>
         <h1>Domain and Protocol Switcher</h1>
         <div id="domainList"></div>
-        <button id="addDomainButton">+ Add New Domain</button>
+        <button id="addDomainButton" class="btn--positive">
+            + Add domain variants for this domain
+        </button>
         <form id="domainForm" style="display: none">
-            <input
-                type="text"
-                id="nameInput"
-                name="name"
-                placeholder="Domain Name (e.g., My Site)"
-                required
-                maxlength="30"
-            />
-            <input
-                type="text"
-                id="protocolInput"
-                name="protocol"
-                placeholder="Protocol (http or https)"
-                required
-            />
-            <input
-                type="text"
-                id="domainInput"
-                name="domain"
-                placeholder="Domain (example.com)"
-                required
-            />
+            <div id="variant-group-container">
+                <div class="variant-group">
+                    <input
+                        type="text"
+                        id="nameInput"
+                        name="name"
+                        placeholder="Domain Name (e.g., My Site)"
+                        required
+                        maxlength="30"
+                    />
+                    <div class="variant-url-group">
+                        <input
+                            type="text"
+                            id="protocolInput"
+                            name="protocol"
+                            placeholder="http or https"
+                            required
+                        />
+                        <span>://</span>
+                        <input
+                            type="text"
+                            id="domainInput"
+                            name="domain"
+                            placeholder="domain (e.g. www.example.com)"
+                            required
+                        />
+                    </div>
+                </div>
+            </div>
+            <button id="addVariantButton" class="btn--positive">
+                + Add Variant
+            </button>
+
             <div id="form-button-container">
-                <button type="button" id="cancelButton">Cancel</button>
-                <button type="button" id="saveDomainButton">Save</button>
+                <button type="button" class="btn--negative" id="cancelButton">
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    class="btn--neutral"
+                    id="saveDomainButton"
+                >
+                    Save
+                </button>
             </div>
         </form>
+        <hr />
+        <button id="resetDataButton" class="btn--negative">
+            Reset All Data for All Domains
+        </button>
         <script src="script/index.js"></script>
     </body>
 </html>
