@@ -324,9 +324,11 @@ function addVariant() {
 }
 
 async function resetAllData() {
-    await chrome.storage.sync.set({ domains: [] }, function () {
-        console.log("All domain data has been reset.");
-    });
+    if (confirm("All saved domain data will be reset.")) {
+        await chrome.storage.sync.set({ domains: [] });
+        alert("Success - all domain data has been reset.");
+        loadDomains();
+    }
 }
 
 // Event listeners
