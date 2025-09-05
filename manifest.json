@@ -2,7 +2,7 @@
     "name": "Url Switcher",
     "description": "This simple extension allows you to switch out the domain part of the current URL for a different domain.  It is useful for developers who need to easily switch between different environments such as dev, test and production.",
     "author": "Simon Sexton",  
-    "version": "1.0",
+    "version": "2.0.0",
     "manifest_version": 3,
     "permissions": [
         "tabs",
